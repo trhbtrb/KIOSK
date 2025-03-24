@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sari Treasures - Touch to Begin</title>
+  <!-- Meta viewport for responsive design -->
+  <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #f5f5f5;
+    }
+
+    .app-container {
+      max-width: 1200px;
+      height: 100vh; /* Kiosk-like full viewport height */
+      margin: 0 auto;
+      background-color: white;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .main-content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto; /* allows vertical scroll inside main content */
+    }
+
+    header {
+      background-color: #6d2e46;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .header-actions span {
+      margin-left: 15px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    /*
+     * Updated category-nav to wrap items
+     * and removed horizontal scroll
+     */
+    .category-nav {
+      display: flex;
+      flex-wrap: wrap;  /* allows buttons to move to a new line if needed */
+      gap: 10px;        /* spacing between buttons */
+      padding: 15px;
+      background-color: #f9f3f5;
+    }
+
+    .category-btn {
+      padding: 10px 20px;
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .category-btn.active {
+      background-color: #6d2e46;
+      color: white;
+      border: 1px solid #6d2e46;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      padding: 15px;
+      flex-grow: 1;
+    }
+
+    .product-card {
+      border: 1px solid #eee;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      transition: transform 0.3s;
+      cursor: pointer;
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .product-image {
+      height: 180px;
+      background-color: #f9f9f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .product-info {
+      padding: 12px;
+    }
+
+    .product-name {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .product-price {
+      color: #6d2e46;
+      font-weight: bold;
+    }
+
+    /*
+     * Slide-down animation for quantity control:
+     *  - Start at max-height: 0 and opacity: 0
+     *  - Transition to max-height: 200px and opacity: 1
+     */
+    .quantity-control {
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      padding: 10px;
+      background-color: #f9f3f5;
+      border-top: 1px solid #eee;
+      align-items: center;
+      justify-content: space-between;
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+    }
+
+    .quantity-label {
+      font-size: 14px;
+      color: #444;
+    }
+
+    .quantity-buttons {
+      display: flex;
+      align-items: center;
+    }
+
+    .quantity-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid #ddd;
+      background-color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .quantity-btn:hover {
+      background-color: #f0f0f0;
+    }
+
+    .quantity-value {
+      width: 40px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .add-cart-btn {
+      width: 100%;
+      padding: 8px 0;
+      margin-top: 10px;
+      background-color: #6d2e46;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .add-cart-btn:hover {
+      background-color: #5a2639;
+    }
+
+    .cart-summary {
+      background-color: #f9f3f5;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid #eee;
+    }
+
+    .cart-items {
+      font-weight: bold;
+    }
+
+    .checkout-btn {
+      background-color: #6d2e46;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 25px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .checkout-btn:hover {
+      background-color: #5a2639;
+    }
+
+    .product-card.selected {
+      border: 2px solid #6d2e46;
+    }
+
+    .product-card.selected .quantity-control {
+      max-height: 200px; /* adjust as needed */
+      opacity: 1;
+      display: flex; /* keep alignment intact */
+      flex-direction: column;
+    }
+
+    /* Responsive styles for smaller screens */
+    @media screen and (max-width: 768px) {
+      .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .category-nav {
+        padding: 10px;
+      }
+
+      .category-btn {
+        padding: 8px 15px;
+        font-size: 14px;
+      }
+
+      .header-actions span {
+        font-size: 14px;
+      }
+    }
+
+    /* Mobile phone styles */
+    @media screen and (max-width: 480px) {
+      .products-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 10px;
+      }
+
+      .product-image {
+        height: 150px;
+      }
+
+      .cart-summary {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .checkout-btn {
+        width: 100%;
+      }
+
+      .category-nav {
+        padding: 8px;
+      }
+
+      .category-btn {
+        padding: 6px 12px;
+        font-size: 13px;
+      }
+
+      .logo {
+        font-size: 20px;
+      }
+
+      header {
+        padding: 10px 15px;
+      }
+
+      .quantity-buttons {
+        justify-content: center;
+        width: 100%;
+      }
+
+      .quantity-label {
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <div class="logo">Sari Treasures</div>
+      <div class="header-actions">
+        <span onclick="showHelp()">Help</span>
+        <span onclick="switchLanguage()">Language</span>
+      </div>
+    </header>
+
+    <div class="main-content">
+      <div class="category-nav">
+        <button class="category-btn active">All Saris</button>
+        <button class="category-btn">Silk</button>
+        <button class="category-btn">Cotton</button>
+        <button class="category-btn">Wedding</button>
+        <button class="category-btn">Festive</button>
+        <button class="category-btn">Casual</button>
+        <button class="category-btn">Accessories</button>
+      </div>
+
+      <div class="products-grid">
+        <div class="product-card" data-id="1" data-name="Banarasi Silk Sari" data-price="5999" onclick="toggleProductSelection(this)">
+          <div class="product-image" style="background-color: #fadce6;"></div>
+          <div class="product-info">
+            <div class="product-name">Banarasi Silk Sari</div>
+            <div class="product-price">₹5,999</div>
+          </div>
+          <div class="quantity-control">
+            <div class="quantity-label">Select Quantity:</div>
+            <div class="quantity-buttons">
+              <div class="quantity-btn" onclick="changeQuantity(1, -1); event.stopPropagation();">-</div>
+              <div class="quantity-value" id="qty-1">1</div>
+              <div class="quantity-btn" onclick="changeQuantity(1, 1); event.stopPropagation();">+</div>
+            </div>
+            <button class="add-cart-btn" onclick="addToCart(1); event.stopPropagation();">Add to Cart</button>
+          </div>
+        </div>
+
+        <div class="product-card" data-id="2" data-name="Cotton Handloom Sari" data-price="2499" onclick="toggleProductSelection(this)">
+          <div class="product-image" style="background-color: #e6facf;"></div>
+          <div class="product-info">
+            <div class="product-name">Cotton Handloom Sari</div>
+            <div class="product-price">₹2,499</div>
+          </div>
+          <div class="quantity-control">
+            <div class="quantity-label">Select Quantity:</div>
+            <div class="quantity-buttons">
+              <div class="quantity-btn" onclick="changeQuantity(2, -1); event.stopPropagation();">-</div>
+              <div class="quantity-value" id="qty-2">1</div>
+              <div class="quantity-btn" onclick="changeQuantity(2, 1); event.stopPropagation();">+</div>
+            </div>
+            <button class="add-cart-btn" onclick="addToCart(2); event.stopPropagation();">Add to Cart</button>
+          </div>
+        </div>
+
+        <div class="product-card" data-id="3" data-name="Embroidered Georgette Sari" data-price="3799" onclick="toggleProductSelection(this)">
+          <div class="product-image" style="background-color: #cff3fa;"></div>
+          <div class="product-info">
+            <div class="product-name">Embroidered Georgette Sari</div>
+            <div class="product-price">₹3,799</div>
+          </div>
+          <div class="quantity-control">
+            <div class="quantity-label">Select Quantity:</div>
+            <div class="quantity-buttons">
+              <div class="quantity-btn" onclick="changeQuantity(3, -1); event.stopPropagation();">-</div>
+              <div class="quantity-value" id="qty-3">1</div>
+              <div class="quantity-btn" onclick="changeQuantity(3, 1); event.stopPropagation();">+</div>
+            </div>
+            <button class="add-cart-btn" onclick="addToCart(3); event.stopPropagation();">Add to Cart</button>
+          </div>
+        </div>
+
+        <div class="product-card" data-id="4" data-name="Kanjivaram Silk Sari" data-price="8999" onclick="toggleProductSelection(this)">
+          <div class="product-image" style="background-color: #f9e4cf;"></div>
+          <div class="product-info">
+            <div class="product-name">Kanjivaram Silk Sari</div>
+            <div class="product-price">₹8,999</div>
+          </div>
+          <div class="quantity-control">
+            <div class="quantity-label">Select Quantity:</div>
+            <div class="quantity-buttons">
+              <div class="quantity-btn" onclick="changeQuantity(4, -1); event.stopPropagation();">-</div>
+              <div class="quantity-value" id="qty-4">1</div>
+              <div class="quantity-btn" onclick="changeQuantity(4, 1); event.stopPropagation();">+</div>
+            </div>
+            <button class="add-cart-btn" onclick="addToCart(4); event.stopPropagation();">Add to Cart</button>
+          </div>
+        </div>
+
+        <div class="product-card" data-id="5" data-name="Linen Sari with Blouse" data-price="3299" onclick="toggleProductSelection(this)">
+          <div class="product-image" style="background-color: #e0cff9;"></div>
+          <div class="product-info">
+            <div class="product-name">Linen Sari with Blouse</div>
+            <div class="product-price">₹3,299</div>
+          </div>
+          <div class="quantity-control">
+            <div class="quantity-label">Select Quantity:</div>
+            <div class="quantity-buttons">
+              <div class="quantity-btn" onclick="changeQuantity(5, -1); event.stopPropagation();">-</div>
+              <div class="quantity-value" id="qty-5">1</div>
+              <div class="quantity-btn" onclick="changeQuantity(5, 1); event.stopPropagation();">+</div>
+            </div>
+            <button class="add-cart-btn" onclick="addToCart(5); event.stopPropagation();">Add to Cart</button>
+          </div>
+        </div>
+
+        <div class="product-card" data-id="6" data-name="Tussar Silk Sari" data-price="4299" onclick="toggleProductSelection(this)">
+          <div class="product-image" style="background-color: #f9cfcf;"></div>
+          <div class="product-info">
+            <div class="product-name">Tussar Silk Sari</div>
+            <div class="product-price">₹4,299</div>
+          </div>
+          <div class="quantity-control">
+            <div class="quantity-label">Select Quantity:</div>
+            <div class="quantity-buttons">
+              <div class="quantity-btn" onclick="changeQuantity(6, -1); event.stopPropagation();">-</div>
+              <div class="quantity-value" id="qty-6">1</div>
+              <div class="quantity-btn" onclick="changeQuantity(6, 1); event.stopPropagation();">+</div>
+            </div>
+            <button class="add-cart-btn" onclick="addToCart(6); event.stopPropagation();">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cart-summary">
+      <div class="cart-items">Cart: 0 items | ₹0</div>
+      <button class="checkout-btn" onclick="checkout()">Checkout</button>
+    </div>
+  </div>
+
+  <script>
+    // Track cart items and totals
+    let cart = {
+      items: {},
+      count: 0,
+      total: 0
+    };
+
+    // Toggle product selection to show quantity control
+    function toggleProductSelection(element) {
+      // Deselect all products first
+      document.querySelectorAll('.product-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      // Select current product
+      element.classList.add('selected');
+    }
+
+    // Change quantity for a product
+    function changeQuantity(productId, change) {
+      const quantityElement = document.getElementById(`qty-${productId}`);
+      let currentQuantity = parseInt(quantityElement.textContent);
+
+      // Make sure quantity doesn't go below 1
+      if (currentQuantity + change < 1) return;
+
+      // Update quantity displayed
+      currentQuantity += change;
+      quantityElement.textContent = currentQuantity;
+    }
+
+    // Add product to cart
+    function addToCart(productId) {
+      const productCard = document.querySelector(`.product-card[data-id="${productId}"]`);
+      const productName = productCard.getAttribute('data-name');
+      const productPrice = parseInt(productCard.getAttribute('data-price'));
+      const quantity = parseInt(document.getElementById(`qty-${productId}`).textContent);
+
+      // Add to cart object
+      if (cart.items[productId]) {
+        cart.items[productId].quantity += quantity;
+      } else {
+        cart.items[productId] = {
+          name: productName,
+          price: productPrice,
+          quantity: quantity
+        };
+      }
+
+      // Update cart totals
+      updateCartSummary();
+
+      // Show confirmation
+      alert(`Added ${quantity} ${productName} to cart!`);
+
+      // Reset quantity to 1
+      document.getElementById(`qty-${productId}`).textContent = "1";
+
+      // Deselect product
+      productCard.classList.remove('selected');
+    }
+
+    // Update cart summary display
+    function updateCartSummary() {
+      cart.count = 0;
+      cart.total = 0;
+
+      // Calculate totals
+      for (const id in cart.items) {
+        cart.count += cart.items[id].quantity;
+        cart.total += cart.items[id].price * cart.items[id].quantity;
+      }
+
+      // Update display
+      document.querySelector('.cart-items').textContent =
+        `Cart: ${cart.count} items | ₹${cart.total.toLocaleString()}`;
+    }
+
+    function checkout() {
+      if (cart.count === 0) {
+        alert('Your cart is empty. Please add items before checkout.');
+      } else {
+        alert(`Proceeding to checkout with ${cart.count} items totaling ₹${cart.total.toLocaleString()}`);
+        // Here you would navigate to a checkout page
+      }
+    }
+
+    function showHelp() {
+      alert('Help section would appear here');
+    }
+
+    function switchLanguage() {
+      alert('Language options would appear here');
+    }
+
+    // Make category buttons interactive
+    document.querySelectorAll('.category-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        document.querySelector('.category-btn.active').classList.remove('active');
+        this.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
