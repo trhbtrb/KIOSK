@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quick Order Dashboard</title>
+  <style>
+    :root {
+      --primary-orange: #ff6b00;
+      --hover-orange: #e55b00;
+      --light-bg: #f4f4f4;
+      --text-dark: #333333;
+      --text-muted: #666666;
+      --sidebar-bg: #fff;
+      --sidebar-width: 220px;
+      /* For Order Summary */
+      --yellow-btn: #FFEB3B;
+      --green-btn: #4CAF50;
+      /* For Order Received */
+      --success-green: #4CAF50;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+    body {
+      background-color: var(--light-bg);
+      display: flex;
+      min-height: 100vh;
+    }
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: var(--sidebar-bg);
+      border-right: 1px solid #e0e0e0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .sidebar h2 {
+      font-size: 1.5rem;
+      color: var(--primary-orange);
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .nav-menu {
+      list-style: none;
+      padding: 0;
+    }
+    .nav-menu li {
+      margin-bottom: 20px;
+    }
+    .nav-menu li a {
+      text-decoration: none;
+      color: var(--text-dark);
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: block;
+      padding: 10px 15px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+    }
+    .nav-menu li a:hover {
+      background-color: #ffe4d0;
+    }
+    .nav-menu li a.active {
+      background-color: var(--primary-orange);
+      color: white;
+    }
+    .logout-link {
+      text-decoration: none;
+      color: var(--text-muted);
+      border: 1px solid var(--text-muted);
+      padding: 8px 15px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+    }
+    .logout-link:hover {
+      background-color: var(--hover-orange);
+      border-color: var(--hover-orange);
+      color: white;
+    }
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .header {
+      width: 100%;
+      background-color: var(--primary-orange);
+      color: white;
+      padding: 20px;
+      border-radius: 16px 16px 0 0;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    .content-container {
+      width: 100%;
+      max-width: 900px;
+      background-color: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    /* Hide all views by default */
+    .view { display: none; }
+    /* Show homeView by default */
+    #homeView { display: block; }
+    /* Common Button Style: Orange default, invert on hover */
+    .menu-button,
+    .category-btn,
+    .confirm-btn,
+    .action-btn {
+      background-color: var(--primary-orange);
+      color: #fff;
+      border: 2px solid var(--primary-orange);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    /* Increase dashboard button size */
+    .menu-button {
+      padding: 30px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+    .menu-button:hover {
+      background-color: #fff;
+      color: var(--primary-orange);
+    }
+    /* Dashboard (Home) View */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      padding: 30px;
+    }
+    .footer {
+      background-color: var(--light-bg);
+      padding: 15px;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+    .system-status {
+      display: flex;
+      align-items: center;
+      color: var(--text-muted);
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #4CAF50;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    /* Store Selection View */
+    #storeSelectionView .kiosk-header {
+      background-color: var(--primary-orange);
+      color: white;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+    #storeSelectionView .search-container {
+      padding: 20px;
+      background-color: var(--light-bg);
+    }
+    #storeSelectionView .search-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+    #storeSelectionView .search-input:focus {
+      outline: none;
+      border-color: var(--primary-orange);
+      box-shadow: 0 0 0 2px rgba(255,107,0,0.1);
+    }
+    #storeSelectionView .stores-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      padding: 20px;
+    }
+    #storeSelectionView .store-button {
+      background-color: var(--light-bg);
+      border: none;
+      border-radius: 10px;
+      padding: 15px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    #storeSelectionView .store-button:hover {
+      background-color: #ffe4d0;
+      transform: scale(1.05);
+    }
+    #storeSelectionView .store-button.active {
+      background-color: var(--primary-orange);
+      color: white;
+    }
+    #storeSelectionView .confirm-btn {
+      width: 100%;
+      padding: 15px;
+      background-color: var(--primary-orange);
+      color: white;
+      border: none;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    #storeSelectionView .confirm-btn:hover {
+      background-color: var(--hover-orange);
+    }
+    /* Select Items View */
+    #selectItemsView .kiosk-header {
+      background-color: var(--primary-orange);
+      color: white;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+    .back-btn {
+      background: none;
+      border: none;
+      color: white;
+      margin-right: 15px;
+      cursor: pointer;
+    }
+    /* Left Panel: Search & Categories in Select Items View */
+    #selectItemsView .left-panel {
+      flex: 2;
+      background-color: var(--light-bg);
+      padding: 20px;
+    }
+    .search-bar {
+      margin-bottom: 20px;
+    }
+    .search-bar input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+    .search-bar input:focus {
+      border-color: var(--primary-orange);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(255,107,0,0.1);
+    }
+    .categories {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 15px;
+    }
+    .category-btn {
+      padding: 10px;
+      font-weight: 600;
+      text-align: center;
+    }
+    .category-btn:hover {
+      background-color: #fff;
+      color: var(--primary-orange);
+    }
+    /* Right Panel: Order Summary in Select Items View */
+    #selectItemsView .right-panel {
+      flex: 1;
+      background-color: #fff;
+      padding: 20px;
+      border-left: 1px solid #e0e0e0;
+    }
+    .summary-header {
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+      font-weight: bold;
+      color: var(--text-dark);
+    }
+    .summary-items {
+      overflow-y: auto;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      background-color: var(--light-bg);
+    }
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 8px;
+      background-color: #fff;
+      border: 1px solid #eee;
+      border-radius: 6px;
+    }
+    .summary-item span {
+      font-weight: 500;
+      color: var(--text-dark);
+    }
+    .remove-btn {
+      padding: 5px 8px;
+      border-radius: 4px;
+    }
+    .remove-btn:hover {
+      background-color: #fff;
+      color: var(--primary-orange);
+    }
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+    .confirm-btn {
+      width: 100%;
+      padding: 15px;
+      font-size: 1rem;
+      font-weight: bold;
+    }
+    .confirm-btn:hover {
+      background-color: #fff;
+      color: var(--primary-orange);
+    }
+    /* Order Summary View */
+    #orderSummaryView .order-summary-container {
+      width: 100%;
+      max-width: 800px;
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      margin: 0 auto;
+    }
+    #orderSummaryView .order-summary-container .header {
+      background-color: var(--primary-orange);
+      color: #fff;
+      padding: 20px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      text-align: center;
+    }
+    #orderSummaryView .order-summary-container .content {
+      padding: 30px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    #orderSummaryView .order-summary-container .order-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--text-dark);
+      margin-bottom: 10px;
+    }
+    #orderSummaryView .order-summary-container .order-list {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 15px;
+      background-color: var(--light-bg);
+      min-height: 120px;
+    }
+    #orderSummaryView .order-summary-container .order-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #fff;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    #orderSummaryView .order-summary-container .order-item:last-child {
+      margin-bottom: 0;
+    }
+    #orderSummaryView .order-summary-container .item-name {
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+    #orderSummaryView .order-summary-container .item-price {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    #orderSummaryView .order-summary-container .buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: auto;
+    }
+    #orderSummaryView .order-summary-container .action-btn {
+      flex: 1;
+      color: #fff;
+      border: 2px solid;
+      border-radius: 8px;
+      font-weight: 600;
+      padding: 12px 0;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+      text-align: center;
+    }
+    #orderSummaryView .order-summary-container .orange-btn {
+      background-color: var(--primary-orange);
+      border-color: var(--primary-orange);
+    }
+    #orderSummaryView .order-summary-container .orange-btn:hover {
+      background-color: #fff;
+      color: var(--primary-orange);
+    }
+    #orderSummaryView .order-summary-container .yellow-btn {
+      background-color: var(--yellow-btn);
+      color: #333;
+      border-color: var(--yellow-btn);
+    }
+    #orderSummaryView .order-summary-container .yellow-btn:hover {
+      background-color: #fff;
+      color: #333;
+    }
+    #orderSummaryView .order-summary-container .green-btn {
+      background-color: var(--green-btn);
+      border-color: var(--green-btn);
+    }
+    #orderSummaryView .order-summary-container .green-btn:hover {
+      background-color: #fff;
+      color: var(--green-btn);
+    }
+    /* Order Received View */
+    #orderReceivedView .order-received-container {
+      width: 100%;
+      max-width: 700px;
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+      margin: 0 auto;
+    }
+    #orderReceivedView .order-received-container .header {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: var(--text-dark);
+      margin-bottom: 30px;
+    }
+    #orderReceivedView .order-received-container .success-checkmark {
+      width: 80px;
+      height: 115px;
+      margin: 0 auto 20px;
+      position: relative;
+    }
+    #orderReceivedView .order-received-container .check-icon {
+      width: 80px;
+      height: 80px;
+      position: relative;
+      border-radius: 50%;
+      box-sizing: content-box;
+      border: 4px solid var(--success-green);
+    }
+    #orderReceivedView .order-received-container .check-icon::before,
+    #orderReceivedView .order-received-container .check-icon::after {
+      content: '';
+      height: 100px;
+      position: absolute;
+      background: #FFFFFF;
+      transform: rotate(-45deg);
+    }
+    #orderReceivedView .order-received-container .check-icon::before {
+      top: 3px;
+      left: -2px;
+      width: 30px;
+      transform-origin: 100% 50%;
+      border-radius: 100px 0 0 100px;
+    }
+    #orderReceivedView .order-received-container .check-icon::after {
+      top: 0;
+      left: 30px;
+      width: 60px;
+      transform-origin: 0 50%;
+      border-radius: 0 100px 100px 0;
+      animation: rotate-circle 4.25s ease-in;
+    }
+    #orderReceivedView .order-received-container .icon-line {
+      height: 5px;
+      background-color: var(--success-green);
+      display: block;
+      border-radius: 2px;
+      position: absolute;
+      z-index: 10;
+    }
+    #orderReceivedView .order-received-container .line-tip {
+      top: 46px;
+      left: 14px;
+      width: 25px;
+      transform: rotate(45deg);
+      animation: icon-line-tip 0.75s;
+    }
+    #orderReceivedView .order-received-container .line-long {
+      top: 38px;
+      right: 8px;
+      width: 47px;
+      transform: rotate(-45deg);
+      animation: icon-line-long 0.75s;
+    }
+    #orderReceivedView .order-received-container .icon-circle {
+      top: -4px;
+      left: -4px;
+      z-index: 10;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      position: absolute;
+      box-sizing: content-box;
+      border: 4px solid rgba(76, 175, 80, 0.5);
+    }
+    #orderReceivedView .order-received-container .icon-fix {
+      top: 8px;
+      width: 5px;
+      left: 26px;
+      z-index: 1;
+      height: 85px;
+      position: absolute;
+      transform: rotate(-45deg);
+      background-color: #FFFFFF;
+    }
+    @keyframes rotate-circle {
+      0% {
+          transform: rotate(-45deg);
+      }
+      5% {
+          transform: rotate(-45deg);
+      }
+      12% {
+          transform: rotate(-405deg);
+      }
+      100% {
+          transform: rotate(-405deg);
+      }
+    }
+    @keyframes icon-line-tip {
+      0% {
+          width: 0;
+          left: 1px;
+          top: 19px;
+      }
+      54% {
+          width: 0;
+          left: 1px;
+          top: 19px;
+      }
+      70% {
+          width: 50px;
+          left: -8px;
+          top: 37px;
+      }
+      84% {
+          width: 17px;
+          left: 21px;
+          top: 48px;
+      }
+      100% {
+          width: 25px;
+          left: 14px;
+          top: 45px;
+      }
+    }
+    @keyframes icon-line-long {
+      0% {
+          width: 0;
+          right: 46px;
+          top: 54px;
+      }
+      65% {
+          width: 0;
+          right: 46px;
+          top: 54px;
+      }
+      84% {
+          width: 55px;
+          right: 0px;
+          top: 35px;
+      }
+      100% {
+          width: 47px;
+          right: 8px;
+          top: 38px;
+      }
+    }
+    #orderReceivedView .order-received-container .message {
+      font-size: 1rem;
+      color: var(--text-dark);
+      text-align: center;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    #orderReceivedView .order-received-container .back-btn {
+      background-color: var(--primary-orange);
+      color: #fff;
+      border: 2px solid var(--primary-orange);
+      border-radius: 8px;
+      font-weight: 600;
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    #orderReceivedView .order-received-container .back-btn:hover {
+      background-color: #fff;
+      color: var(--primary-orange);
+    }
+    /* Order History View */
+    #historyView {
+      padding: 20px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Quick Order</h2>
+    <ul class="nav-menu">
+      <li><a href="#" class="active" onclick="showView('homeView')">Dashboard</a></li>
+      <li><a href="#" onclick="showView('storeSelectionView')">Select Store</a></li>
+      <li><a href="#" onclick="showView('selectItemsView')">Select Items</a></li>
+      <li><a href="#" onclick="showView('orderSummaryView')">Order Summary</a></li>
+      <li><a href="#" onclick="showView('historyView')">Order History</a></li>
+    </ul>
+    <a href="#" class="logout-link">Logout</a>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="header">Quick Order Dashboard</div>
+    <div class="content-container">
+      <!-- Dashboard (Home) View -->
+      <div id="homeView" class="view">
+        <div class="menu-grid">
+          <button class="menu-button" onclick="showView('storeSelectionView')">
+            Buy Items
+          </button>
+          <button class="menu-button" onclick="showView('historyView')">
+            History
+          </button>
+        </div>
+        <div class="footer">
+          <div class="system-status">
+            <div class="status-dot"></div>
+            System Online
+          </div>
+        </div>
+      </div>
+      
+      <!-- Store Selection View -->
+      <div id="storeSelectionView" class="view">
+        <div class="kiosk-header">
+          <button class="back-btn" onclick="showView('homeView')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 18l-6-6 6-6"></path>
+            </svg>
+          </button>
+          Select Store
+        </div>
+        <div class="search-container">
+          <input type="text" class="search-input" placeholder="Search stores...">
+        </div>
+        <div class="stores-grid">
+          <button class="store-button">Store 1</button>
+          <button class="store-button">Store 2</button>
+          <button class="store-button">Store 3</button>
+          <button class="store-button">Store 4</button>
+          <button class="store-button">Store 5</button>
+          <button class="store-button">Store 6</button>
+          <button class="store-button">Store 7</button>
+          <button class="store-button">Store 8</button>
+          <button class="store-button">Store 9</button>
+        </div>
+        <button class="confirm-btn" onclick="showView('selectItemsView')">
+          Select Items
+        </button>
+      </div>
+      
+      <!-- Select Items View -->
+      <div id="selectItemsView" class="view">
+        <div class="kiosk-header">
+          <button class="back-btn" onclick="showView('storeSelectionView')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 18l-6-6 6-6"></path>
+            </svg>
+          </button>
+          Select Items
+        </div>
+        <div style="display: flex;">
+          <!-- Left Panel: Search & Categories -->
+          <div class="left-panel">
+            <div class="search-bar">
+              <input type="text" placeholder="Search items...">
+            </div>
+            <div class="categories">
+              <button class="category-btn">Football</button>
+              <button class="category-btn">Basketball</button>
+              <button class="category-btn">Tennis</button>
+              <button class="category-btn">Baseball</button>
+              <button class="category-btn">Golf</button>
+              <button class="category-btn">Soccer</button>
+              <button class="category-btn">Hockey</button>
+              <button class="category-btn">Running</button>
+              <button class="category-btn">Cycling</button>
+            </div>
+          </div>
+          <!-- Right Panel: Order Summary -->
+          <div class="right-panel">
+            <div class="summary-header">Order Summary</div>
+            <div class="summary-items" id="summaryList">
+              <!-- Example items -->
+              <div class="summary-item">
+                <span>Football x 2</span>
+                <button class="remove-btn">Remove</button>
+              </div>
+              <div class="summary-item">
+                <span>Basketball x 1</span>
+                <button class="remove-btn">Remove</button>
+              </div>
+            </div>
+            <div class="actions">
+              <button class="confirm-btn" onclick="showView('orderSummaryView')">
+                Proceed to Order Summary
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Order Summary View -->
+      <div id="orderSummaryView" class="view">
+        <div class="order-summary-container">
+          <div class="header">
+            Order Summary (Store Name)
+          </div>
+          <div class="content">
+            <div>
+              <div class="order-title">Listed products here:</div>
+              <div class="order-list">
+                <div class="order-item">
+                  <div class="item-name">Football x 2</div>
+                  <div class="item-price">$40</div>
+                </div>
+                <div class="order-item">
+                  <div class="item-name">Basketball x 1</div>
+                  <div class="item-price">$25</div>
+                </div>
+              </div>
+            </div>
+            <div class="buttons">
+              <button class="action-btn orange-btn" onclick="showView('selectItemsView')">
+                Go back to select
+              </button>
+              <button class="action-btn yellow-btn" onclick="alert('Edit order not implemented')">
+                Edit order
+              </button>
+              <button class="action-btn green-btn" onclick="showView('orderReceivedView')">
+                Approve order
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Order Received View -->
+      <div id="orderReceivedView" class="view">
+        <div class="order-received-container">
+          <div class="header">Order Received</div>
+          <div class="success-checkmark">
+            <div class="check-icon">
+              <span class="icon-line line-tip"></span>
+              <span class="icon-line line-long"></span>
+              <div class="icon-circle"></div>
+              <div class="icon-fix"></div>
+            </div>
+          </div>
+          <p class="message">
+            Order received, please wait for the notification to review the list.
+            <br/>
+            You can remove or add quantity with the next update if needed.
+          </p>
+          <!-- Add your new date/time placeholder here -->
+          <p class="message" id="orderDateTime" style="font-weight: 600;">
+            <!-- Date/time will be inserted here by JavaScript -->
+          </p>
+          <button class="back-btn" onclick="showView('homeView')">
+            Go back to menu
+          </button>
+        </div>
+      </div>
+      
+      <!-- Order History View -->
+      <div id="historyView" class="view">
+        <p>Order history is currently unavailable.</p>
+        <p>Please check back later.</p>
+      </div>
+    </div>
+  </div>
+  <script>
+    function showView(viewId) {
+      // Hide all .view elements
+      var views = document.querySelectorAll('.view');
+      views.forEach(function(view) {
+        view.style.display = 'none';
+      });
+      
+      // Remove active class from sidebar links
+      var navLinks = document.querySelectorAll('.nav-menu li a');
+      navLinks.forEach(function(link) {
+        link.classList.remove('active');
+      });
+      
+      // Show the selected view
+      document.getElementById(viewId).style.display = 'block';
+      
+      // Highlight the corresponding sidebar link
+      var activeLink = document.querySelector('.nav-menu li a[onclick="showView(\'' + viewId + '\')"]');
+      if(activeLink) {
+        activeLink.classList.add('active');
+      }
+
+      // If the user navigates to the Order Received View, insert current date/time
+      if (viewId === 'orderReceivedView') {
+        fetch('https://worldtimeapi.org/api/ip')
+          .then(response => response.json())
+          .then(data => {
+            const dateTime = new Date(data.datetime);
+            const formattedDateTime = dateTime.toLocaleString();
+            const orderDateTimeEl = document.getElementById('orderDateTime');
+            if (orderDateTimeEl) {
+              orderDateTimeEl.textContent = 'Ordered on: ' + formattedDateTime;
+            }
+          })
+          .catch(error => {
+            console.error('Time API error:', error);
+            const fallback = new Date().toLocaleString();
+            document.getElementById('orderDateTime').textContent = 'Ordered on: ' + fallback + ' (local)';
+          });
+      }
+    }
+    
+    // Set up "active" state for store buttons on the Store Selection View
+    document.addEventListener("DOMContentLoaded", function() {
+      const storeButtons = document.querySelectorAll('#storeSelectionView .store-button');
+      storeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          storeButtons.forEach(btn => btn.classList.remove('active'));
+          button.classList.add('active');
+        });
+      });
+    });
+    
+    // Logout link click -> redirect to index.html
+    document.querySelector('.logout-link').addEventListener('click', function(e) {
+      e.preventDefault();
+      window.location.href = "index.html";
+    });
+  </script>
+</body>
+</html>

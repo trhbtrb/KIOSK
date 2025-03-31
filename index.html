@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pizza Ordering App - Login & Sign Up</title>
+  <!-- Font Awesome for icons (optional) -->
+  <link rel="stylesheet" 
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" 
+        integrity="sha512-acVn7tH4FEx1gD3icV6cK8g9zRx5Kkv8Cf8gWZKPY1Zoqs4RFBm8Msc8RLhrj0fUNZK8x2fQnC1pZdv0h3z1Mw==" 
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    /* RESET & GLOBAL */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      background-color: #f4f4f4;
+      min-height: 100vh;
+    }
+    button {
+      cursor: pointer;
+    }
+    
+    /* LOGIN / SIGNUP SECTION */
+    #login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100vh;
+      background-color: #f4f4f4;
+    }
+    .login-box {
+      background-color: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      width: 400px;
+      padding: 40px;
+      text-align: center;
+    }
+    .toggle-buttons {
+      display: flex;
+      margin-bottom: 30px;
+    }
+    .toggle-btn {
+      flex-grow: 1;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border: none;
+      font-weight: bold;
+      color: #666;
+      transition: all 0.3s ease;
+    }
+    .toggle-btn.active {
+      background-color: #ff6b00;
+      color: white;
+    }
+    .form-container {
+      display: none;
+    }
+    .form-container.active {
+      display: block;
+    }
+    .form-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #333;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 5px;
+    }
+    .role-selection {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .role-option {
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      margin: 0 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    .role-option.selected {
+      border-color: #ff6b00;
+      background-color: #fff4e6;
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 15px;
+      background-color: #ff6b00;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+    .submit-btn:hover {
+      background-color: #e55b00;
+    }
+    .switch-form {
+      margin-top: 15px;
+      color: #666;
+    }
+    .switch-form a {
+      color: #ff6b00;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- LOGIN / SIGN UP PAGE -->
+  <div id="login-container">
+    <div class="login-box">
+      <div class="toggle-buttons">
+        <button class="toggle-btn active" data-form="login">Login</button>
+        <button class="toggle-btn" data-form="signup">Sign Up</button>
+      </div>
+      <!-- Login Form -->
+      <div class="form-container login-form active">
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-username">Username</label>
+            <input type="text" id="login-username" required>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" required>
+          </div>
+          <button type="submit" class="submit-btn">Login</button>
+          <div class="switch-form">
+            Don't have an account? <a href="#" class="switch-to-signup">Sign Up</a>
+          </div>
+        </form>
+      </div>
+      <!-- Signup Form -->
+      <div class="form-container signup-form">
+        <div class="role-selection">
+          <!-- Role option for store-owner (admin) -->
+          <div class="role-option" data-role="store-owner">
+            <h3>Store Owner</h3>
+            <p>Manage your restaurant</p>
+          </div>
+          <!-- Role option for customer -->
+          <div class="role-option" data-role="customer">
+            <h3>Customer</h3>
+            <p>Order your favorite pizza</p>
+          </div>
+        </div>
+        <form id="signup-form">
+          <input type="hidden" id="user-role" name="user-role">
+          <div class="form-group">
+            <label for="signup-username">Username</label>
+            <input type="text" id="signup-username" required>
+          </div>
+          <div class="form-group">
+            <label for="signup-password">Password</label>
+            <input type="password" id="signup-password" required>
+          </div>
+          <div class="form-group">
+            <label for="signup-confirm-password">Confirm Password</label>
+            <input type="password" id="signup-confirm-password" required>
+          </div>
+          <button type="submit" class="submit-btn">Create Account</button>
+          <div class="switch-form">
+            Already have an account? <a href="#" class="switch-to-login">Login</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Toggle between login and signup forms
+    document.querySelectorAll('.toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.form-container').forEach(form => form.classList.remove('active'));
+        const formToShow = btn.getAttribute('data-form');
+        document.querySelector(`.${formToShow}-form`).classList.add('active');
+      });
+    });
+    document.querySelector('.switch-to-signup')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelector('.toggle-btn[data-form="signup"]').click();
+    });
+    document.querySelector('.switch-to-login')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelector('.toggle-btn[data-form="login"]').click();
+    });
+    
+    // Role selection for signup
+    document.querySelectorAll('.role-option').forEach(option => {
+      option.addEventListener('click', () => {
+        document.querySelectorAll('.role-option').forEach(opt => opt.classList.remove('selected'));
+        option.classList.add('selected');
+        const role = option.getAttribute('data-role');
+        document.getElementById('user-role').value = role;
+      });
+    });
+    
+    // LOGIN FORM
+    document.getElementById('login-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('login-username').value;
+      const password = document.getElementById('login-password').value;
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const user = users.find(u => u.username === username && u.password === password);
+      
+      if(user) {
+        if(user.role === "store-owner"){
+          // Redirect store-owner to AdminPage.html
+          window.location.href = "AdminPage.html";
+        } else if(user.role === "customer"){
+          // Redirect customer to CustomerDashboard.html
+          window.location.href = "CustomerDashboard.html";
+        } else {
+          alert("User role not recognized.");
+        }
+      } else {
+        alert("Invalid credentials.");
+      }
+    });
+    
+    // SIGNUP FORM
+    document.getElementById('signup-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const password = document.getElementById('signup-password').value;
+      const confirmPassword = document.getElementById('signup-confirm-password').value;
+      const role = document.getElementById('user-role').value;
+      if(password !== confirmPassword){
+        alert("Passwords do not match");
+        return;
+      }
+      if(!role){
+        alert("Please select a user role");
+        return;
+      }
+      const newUser = {
+        username: document.getElementById('signup-username').value,
+        password: password,
+        role: role
+      };
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      users.push(newUser);
+      localStorage.setItem('users', JSON.stringify(users));
+      alert("Account created successfully!");
+      // Switch back to Login form
+      document.querySelector('.toggle-btn[data-form="login"]').click();
+    });
+  </script>
+</body>
+</html>
